@@ -12,6 +12,7 @@ import (
 	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/peer"
 	cr "github.com/libp2p/go-libp2p-core/routing"
+	disc "github.com/libp2p/go-libp2p-discovery"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
 	secio "github.com/libp2p/go-libp2p-secio"
@@ -133,10 +134,22 @@ func main() {
 		panic(err)
 	}
 
+	kademliaDHT, err := dht.New(ctx, h, dht.Mode(dht.ModeAuto))
+	if err != nil {
+		panic(err)
+	}
+	if err = kademliaDHT.Bootstrap(ctx); err != nil {
+		panic(err)
+	}
+	routingDiscovery := disc.NewRoutingDiscovery(kademliaDHT)
+	disc.Advertise(ctx, routingDiscovery, "spore-pubsub-discovery")
+
 	// create a new PubSub service using the GossipSub router
 	ps, err := pubsub.NewGossipSub(ctx, h,
 		pubsub.WithFloodPublish(true),
 		pubsub.WithPeerExchange(true),
+		pubsub.WithDirectConnectTicks(5),
+		pubsub.WithDiscovery(routingDiscovery),
 	)
 	if err != nil {
 		log.Error(err)
