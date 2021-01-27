@@ -19,7 +19,7 @@ import (
 const defaultConfig = `{
     "ClusterKey": "f73792a8ba5fa5306039ccd82f79887b3319457752ff0b604fc736c72134e336",
     "Bootstrappers": [
-		"/ip4/35.224.203.143/tcp/4001/p2p/QmeRw9ZbkupTq89mrsXFX87pxzYpXR9Bmems25LPKvPbwQ"
+		"/ip4/35.224.203.143/tcp/4001/p2p/QmfNdsi6tQfuQ1AbiVbTwxziaRCzuamjP711y42mNW33DS"
 	]
 }`
 
