@@ -4,6 +4,7 @@ go 1.14
 
 require (
 	github.com/gdamore/tcell v1.3.0
+	github.com/golang/protobuf v1.4.2
 	github.com/kirsle/configdir v0.0.0-20170128060238-e45d2f54772f
 	github.com/libp2p/go-libp2p v0.13.0
 	github.com/libp2p/go-libp2p-connmgr v0.2.4

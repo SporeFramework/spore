@@ -5,19 +5,22 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/libp2p/go-libp2p"
 	connmgr "github.com/libp2p/go-libp2p-connmgr"
 	"github.com/libp2p/go-libp2p-core/host"
+	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/go-libp2p-core/peer"
 	cr "github.com/libp2p/go-libp2p-core/routing"
-	disc "github.com/libp2p/go-libp2p-discovery"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
 	secio "github.com/libp2p/go-libp2p-secio"
 	libp2ptls "github.com/libp2p/go-libp2p-tls"
 	"github.com/libp2p/go-libp2p/p2p/discovery"
+	"github.com/multiformats/go-multiaddr"
 	"github.com/sirupsen/logrus"
 )
 
@@ -45,13 +48,11 @@ var log = logrus.New()
 func main() {
 	// parse some flags to set our nickname and the room to join
 	flag.Var(&bootstrappers, "connect", "Connect to target bootstrap node. This can be any chat node on the network.")
-	nickFlag := flag.String("nick", "", "Nickname to use in chat, generated if empty")
-	roomFlag := flag.String("room", "main", "Name of chat room to join")
 	listenHost := flag.String("host", "0.0.0.0", "The bootstrap node host listen address")
 	port := flag.Int("port", 0, "The node's listening port. This is useful if using this node as a bootstrapper.")
 	useKey := flag.Bool("use-key", false, "Use an ECSDS keypair as this node's identifier. The keypair is generated if it does not exist in the app's local config directory.")
 	info := flag.Bool("info", false, "Display node endpoint information before logging into the main chat room")
-	daemon := flag.Bool("daemon", false, "Run as a boostrap daemon only")
+	daemon := flag.Bool("daemon", false, "Run as a bootstrap daemon only")
 	flag.Parse()
 
 	conf := ConfigSetup()
@@ -134,27 +135,58 @@ func main() {
 		panic(err)
 	}
 
-	kademliaDHT, err := dht.New(ctx, h, dht.Mode(dht.ModeAuto))
-	if err != nil {
-		panic(err)
-	}
-	if err = kademliaDHT.Bootstrap(ctx); err != nil {
-		panic(err)
-	}
-	routingDiscovery := disc.NewRoutingDiscovery(kademliaDHT)
-	disc.Advertise(ctx, routingDiscovery, "spore-pubsub-discovery")
+	_, err = CollectBootstrapAddrInfos(ctx)
 
-	// create a new PubSub service using the GossipSub router
-	ps, err := pubsub.NewGossipSub(ctx, h,
-		pubsub.WithFloodPublish(true),
-		pubsub.WithPeerExchange(true),
-		pubsub.WithDirectConnectTicks(5),
-		pubsub.WithDiscovery(routingDiscovery),
-	)
+	h.Network().Notify(&network.NotifyBundle{
+		ConnectedF: func(n network.Network, c network.Conn) {
+			s := fmt.Sprintf("%s/p2p/%s", c.RemoteMultiaddr(), c.RemotePeer())
+			if Find(GetConfig().Bootstrappers, s) {
+				fmt.Println("🌟 Connected to Bootstrap Node:", s)
+			}
+		},
+
+		DisconnectedF: func(n network.Network, c network.Conn) {
+			s := fmt.Sprintf("%s/p2p/%s", c.RemoteMultiaddr(), c.RemotePeer())
+			if Find(GetConfig().Bootstrappers, s) {
+				fmt.Println("🛑 Disconnected from Bootstrap Node:", s)
+
+				// thread
+				go func(s string, peerId peer.ID) {
+					for i := 0; i < 100; i++ {
+						fmt.Printf("Loop %s\n", i)
+						time.Sleep(2 * time.Second)
+						targetAddr, _ := multiaddr.NewMultiaddr(s)
+						targetInfo, _ := peer.AddrInfoFromP2pAddr(targetAddr)
+						c := h.Network().Connectedness(peerId)
+						fmt.Println("Connectedness:", c)
+
+						err = h.Connect(ctx, *targetInfo)
+						if err != nil {
+							log.Warn("Trying to connect to bootstrap Peer", s, err)
+						}
+						if h.Network().Connectedness(peerId) == network.Connected {
+							return
+						}
+					}
+				}(s, c.RemotePeer())
+
+			}
+		},
+	})
+
+	fmt.Println("Id:", h.ID().Pretty())
+	// print the node's listening addresses
+	fmt.Println("Listen addresses:", h.Addrs())
+
+	ps, err := pubsub.NewGossipSub(ctx, h)
 	if err != nil {
-		log.Error(err)
 		panic(err)
 	}
+	sub, err := ps.Subscribe(pubsubTopic)
+	if err != nil {
+		panic(err)
+	}
+	go pubsubHandler(ctx, sub)
 
 	// setup local mDNS discovery
 	err = setupMdnsDiscovery(ctx, h)
@@ -163,21 +195,11 @@ func main() {
 		panic(err)
 	}
 
-	// use the nickname from the cli flag, or a default if blank
-	nick := *nickFlag
-	if len(nick) == 0 {
-		nick = defaultNick(h.ID())
-	}
+	donec := make(chan struct{}, 1)
+	go chatInputLoop(ctx, h, ps, donec)
 
-	// join the room from the cli flag, or the flag default
-	room := *roomFlag
-
-	// join the chat room
-	cr, err := JoinChatRoom(ctx, ps, h.ID(), nick, room)
-	if err != nil {
-		log.Error(err)
-		panic(err)
-	}
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, syscall.SIGINT)
 
 	if *info {
 		fmt.Println("🔖  Network id:", conf.ClusterKey)
@@ -191,14 +213,32 @@ func main() {
 	}
 
 	if *daemon {
-		select {}
-	} else {
-		// draw the UI
-		ui := NewChatUI(cr)
-		if err = ui.Run(); err != nil {
-			printErr("error running text UI: %s", err)
-			log.Error("error running text UI: %s", err)
+		// select {}
+		// TODO remove this
+		select {
+		case <-stop:
+			h.Close()
+			os.Exit(0)
+		case <-donec:
+			h.Close()
 		}
+	} else {
+
+		select {
+		case <-stop:
+			h.Close()
+			os.Exit(0)
+		case <-donec:
+			h.Close()
+		}
+		// draw the UI
+		/*
+			ui := NewChatUI(cr)
+			if err = ui.Run(); err != nil {
+				printErr("error running text UI: %s", err)
+				log.Error("error running text UI: %s", err)
+			}
+		*/
 	}
 }
 
