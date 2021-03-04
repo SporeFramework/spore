@@ -1,4 +1,4 @@
-module github.com/libp2p/go-libp2p-examples/pubsub/chat
+module github.com/SporeFramework/spore
 
 go 1.14
 
