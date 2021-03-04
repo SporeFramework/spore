@@ -50,6 +50,7 @@ func main() {
 	flag.Var(&bootstrappers, "connect", "Connect to target bootstrap node. This can be any chat node on the network.")
 	listenHost := flag.String("host", "0.0.0.0", "The bootstrap node host listen address")
 	port := flag.Int("port", 0, "The node's listening port. This is useful if using this node as a bootstrapper.")
+	rpcPort := flag.Int("rpc", 9000, "The node's rpc port.")
 	useKey := flag.Bool("use-key", false, "Use an ECSDS keypair as this node's identifier. The keypair is generated if it does not exist in the app's local config directory.")
 	info := flag.Bool("info", false, "Display node endpoint information before logging into the main chat room")
 	daemon := flag.Bool("daemon", false, "Run as a bootstrap daemon only")
@@ -174,9 +175,9 @@ func main() {
 		},
 	})
 
-	fmt.Println("Id:", h.ID().Pretty())
+	fmt.Println("🌟 Id:", h.ID().Pretty())
 	// print the node's listening addresses
-	fmt.Println("Listen addresses:", h.Addrs())
+	fmt.Println("🔖 Listen addresses:", h.Addrs())
 
 	ps, err := pubsub.NewGossipSub(ctx, h)
 	if err != nil {
@@ -196,7 +197,7 @@ func main() {
 	}
 
 	donec := make(chan struct{}, 1)
-	go chatInputLoop(ctx, h, ps, donec)
+	//go chatInputLoop(ctx, h, ps, donec)
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGINT)
@@ -211,6 +212,8 @@ func main() {
 		fmt.Println("Press any key to continue...")
 		fmt.Scanln() // wait for Enter Key
 	}
+
+	go startRPCServer(ps, rpcPort)
 
 	if *daemon {
 		// select {}

@@ -13,7 +13,7 @@ var handles = map[string]string{}
 
 const pubsubTopic = "/libp2p/spore/chat/1.0.0"
 
-func pubsubMessageHandler(id peer.ID, msg *SendMessage) {
+func pubsubTransactionHandler(id peer.ID, msg *SendTransaction) {
 	handle, ok := handles[id.String()]
 	if !ok {
 		handle = id.ShortString()
@@ -46,8 +46,8 @@ func pubsubHandler(ctx context.Context, sub *pubsub.Subscription) {
 		}
 
 		switch *req.Type {
-		case Request_SEND_MESSAGE:
-			pubsubMessageHandler(msg.GetFrom(), req.SendMessage)
+		case Request_SEND_TRANSACTION:
+			pubsubTransactionHandler(msg.GetFrom(), req.SendTransaction)
 		case Request_UPDATE_PEER:
 			pubsubUpdateHandler(msg.GetFrom(), req.UpdatePeer)
 		}

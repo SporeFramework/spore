@@ -26,18 +26,18 @@ const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 type Request_Type int32
 
 const (
-	Request_SEND_MESSAGE Request_Type = 0
-	Request_UPDATE_PEER  Request_Type = 1
+	Request_SEND_TRANSACTION Request_Type = 0
+	Request_UPDATE_PEER      Request_Type = 1
 )
 
 var Request_Type_name = map[int32]string{
-	0: "SEND_MESSAGE",
+	0: "SEND_TRANSACTION",
 	1: "UPDATE_PEER",
 }
 
 var Request_Type_value = map[string]int32{
-	"SEND_MESSAGE": 0,
-	"UPDATE_PEER":  1,
+	"SEND_TRANSACTION": 0,
+	"UPDATE_PEER":      1,
 }
 
 func (x Request_Type) Enum() *Request_Type {
@@ -64,12 +64,12 @@ func (Request_Type) EnumDescriptor() ([]byte, []int) {
 }
 
 type Request struct {
-	Type                 *Request_Type `protobuf:"varint,1,req,name=type,enum=main.Request_Type" json:"type,omitempty"`
-	SendMessage          *SendMessage  `protobuf:"bytes,2,opt,name=sendMessage" json:"sendMessage,omitempty"`
-	UpdatePeer           *UpdatePeer   `protobuf:"bytes,3,opt,name=updatePeer" json:"updatePeer,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
-	XXX_unrecognized     []byte        `json:"-"`
-	XXX_sizecache        int32         `json:"-"`
+	Type                 *Request_Type    `protobuf:"varint,1,req,name=type,enum=main.Request_Type" json:"type,omitempty"`
+	SendTransaction      *SendTransaction `protobuf:"bytes,2,opt,name=sendTransaction" json:"sendTransaction,omitempty"`
+	UpdatePeer           *UpdatePeer      `protobuf:"bytes,3,opt,name=updatePeer" json:"updatePeer,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}         `json:"-"`
+	XXX_unrecognized     []byte           `json:"-"`
+	XXX_sizecache        int32            `json:"-"`
 }
 
 func (m *Request) Reset()         { *m = Request{} }
@@ -109,12 +109,12 @@ func (m *Request) GetType() Request_Type {
 	if m != nil && m.Type != nil {
 		return *m.Type
 	}
-	return Request_SEND_MESSAGE
+	return Request_SEND_TRANSACTION
 }
 
-func (m *Request) GetSendMessage() *SendMessage {
+func (m *Request) GetSendTransaction() *SendTransaction {
 	if m != nil {
-		return m.SendMessage
+		return m.SendTransaction
 	}
 	return nil
 }
@@ -126,7 +126,7 @@ func (m *Request) GetUpdatePeer() *UpdatePeer {
 	return nil
 }
 
-type SendMessage struct {
+type SendTransaction struct {
 	Data                 []byte   `protobuf:"bytes,1,req,name=data" json:"data,omitempty"`
 	Created              *int64   `protobuf:"varint,2,req,name=created" json:"created,omitempty"`
 	Id                   []byte   `protobuf:"bytes,3,req,name=id" json:"id,omitempty"`
@@ -135,18 +135,18 @@ type SendMessage struct {
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *SendMessage) Reset()         { *m = SendMessage{} }
-func (m *SendMessage) String() string { return proto.CompactTextString(m) }
-func (*SendMessage) ProtoMessage()    {}
-func (*SendMessage) Descriptor() ([]byte, []int) {
+func (m *SendTransaction) Reset()         { *m = SendTransaction{} }
+func (m *SendTransaction) String() string { return proto.CompactTextString(m) }
+func (*SendTransaction) ProtoMessage()    {}
+func (*SendTransaction) Descriptor() ([]byte, []int) {
 	return fileDescriptor_8c585a45e2093e54, []int{1}
 }
-func (m *SendMessage) XXX_Unmarshal(b []byte) error {
+func (m *SendTransaction) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *SendMessage) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *SendTransaction) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_SendMessage.Marshal(b, m, deterministic)
+		return xxx_messageInfo_SendTransaction.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -156,33 +156,33 @@ func (m *SendMessage) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) 
 		return b[:n], nil
 	}
 }
-func (m *SendMessage) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_SendMessage.Merge(m, src)
+func (m *SendTransaction) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SendTransaction.Merge(m, src)
 }
-func (m *SendMessage) XXX_Size() int {
+func (m *SendTransaction) XXX_Size() int {
 	return m.Size()
 }
-func (m *SendMessage) XXX_DiscardUnknown() {
-	xxx_messageInfo_SendMessage.DiscardUnknown(m)
+func (m *SendTransaction) XXX_DiscardUnknown() {
+	xxx_messageInfo_SendTransaction.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_SendMessage proto.InternalMessageInfo
+var xxx_messageInfo_SendTransaction proto.InternalMessageInfo
 
-func (m *SendMessage) GetData() []byte {
+func (m *SendTransaction) GetData() []byte {
 	if m != nil {
 		return m.Data
 	}
 	return nil
 }
 
-func (m *SendMessage) GetCreated() int64 {
+func (m *SendTransaction) GetCreated() int64 {
 	if m != nil && m.Created != nil {
 		return *m.Created
 	}
 	return 0
 }
 
-func (m *SendMessage) GetId() []byte {
+func (m *SendTransaction) GetId() []byte {
 	if m != nil {
 		return m.Id
 	}
@@ -239,32 +239,32 @@ func (m *UpdatePeer) GetUserHandle() []byte {
 func init() {
 	proto.RegisterEnum("main.Request_Type", Request_Type_name, Request_Type_value)
 	proto.RegisterType((*Request)(nil), "main.Request")
-	proto.RegisterType((*SendMessage)(nil), "main.SendMessage")
+	proto.RegisterType((*SendTransaction)(nil), "main.SendTransaction")
 	proto.RegisterType((*UpdatePeer)(nil), "main.UpdatePeer")
 }
 
 func init() { proto.RegisterFile("chat.proto", fileDescriptor_8c585a45e2093e54) }
 
 var fileDescriptor_8c585a45e2093e54 = []byte{
-	// 276 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x4c, 0x90, 0xc1, 0x4a, 0xf3, 0x40,
-	0x14, 0x85, 0x3b, 0x93, 0x40, 0xe1, 0x26, 0xf4, 0xcf, 0x7f, 0x57, 0xb3, 0x0a, 0x21, 0x0b, 0x89,
-	0x20, 0x41, 0xea, 0x13, 0x54, 0x3a, 0x28, 0x48, 0x25, 0x4c, 0xda, 0x75, 0x19, 0x3a, 0x17, 0x0d,
-	0x68, 0x1a, 0x93, 0xc9, 0xa2, 0x6f, 0xe2, 0xfb, 0xb8, 0x71, 0xe9, 0x23, 0x48, 0x7c, 0x11, 0x49,
-	0xaa, 0x36, 0xbb, 0x99, 0x73, 0xbe, 0xc3, 0xb9, 0xf7, 0x02, 0xec, 0x1e, 0xb5, 0x4d, 0xab, 0x7a,
-	0x6f, 0xf7, 0xe8, 0x3e, 0xeb, 0xa2, 0x8c, 0xdf, 0x18, 0x4c, 0x15, 0xbd, 0xb4, 0xd4, 0x58, 0x3c,
-	0x03, 0xd7, 0x1e, 0x2a, 0x12, 0x2c, 0xe2, 0xc9, 0x6c, 0x8e, 0x69, 0x0f, 0xa4, 0x3f, 0x66, 0xba,
-	0x3e, 0x54, 0xa4, 0x06, 0x1f, 0xaf, 0xc0, 0x6b, 0xa8, 0x34, 0x2b, 0x6a, 0x1a, 0xfd, 0x40, 0x82,
-	0x47, 0x2c, 0xf1, 0xe6, 0xff, 0x8f, 0x78, 0x7e, 0x32, 0xd4, 0x98, 0xc2, 0x4b, 0x80, 0xb6, 0x32,
-	0xda, 0x52, 0x46, 0x54, 0x0b, 0x67, 0xc8, 0x04, 0xc7, 0xcc, 0xe6, 0x4f, 0x57, 0x23, 0x26, 0x3e,
-	0x07, 0xb7, 0x2f, 0xc5, 0x00, 0xfc, 0x5c, 0xde, 0x2f, 0xb7, 0x2b, 0x99, 0xe7, 0x8b, 0x1b, 0x19,
-	0x4c, 0xf0, 0x1f, 0x78, 0x9b, 0x6c, 0xb9, 0x58, 0xcb, 0x6d, 0x26, 0xa5, 0x0a, 0x58, 0x7c, 0x07,
-	0xde, 0xa8, 0x18, 0x11, 0x5c, 0xa3, 0xad, 0x1e, 0x16, 0xf1, 0xd5, 0xf0, 0x46, 0x01, 0xd3, 0x5d,
-	0x4d, 0xda, 0x92, 0x11, 0x3c, 0xe2, 0x89, 0xa3, 0x7e, 0xbf, 0x38, 0x03, 0x5e, 0x18, 0xe1, 0x0c,
-	0x2c, 0x2f, 0x4c, 0x7c, 0x01, 0x70, 0x9a, 0x08, 0x43, 0x80, 0xb6, 0xa1, 0xfa, 0x56, 0x97, 0xe6,
-	0xa9, 0x3f, 0x0d, 0x4b, 0x7c, 0x35, 0x52, 0xae, 0x83, 0xf7, 0x2e, 0x64, 0x1f, 0x5d, 0xc8, 0x3e,
-	0xbb, 0x90, 0xbd, 0x7e, 0x85, 0x93, 0xef, 0x00, 0x00, 0x00, 0xff, 0xff, 0x34, 0xa3, 0x90, 0xc9,
-	0x65, 0x01, 0x00, 0x00,
+	// 283 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x5c, 0x90, 0xcf, 0x6a, 0x83, 0x40,
+	0x10, 0xc6, 0xb3, 0xab, 0x10, 0x98, 0x84, 0x28, 0x43, 0x0b, 0x7b, 0x12, 0xf1, 0x50, 0x3c, 0xb4,
+	0x52, 0xf2, 0x02, 0xc5, 0x36, 0x42, 0x7b, 0x31, 0xb2, 0x9a, 0x73, 0x58, 0xdc, 0x85, 0x0a, 0xad,
+	0x5a, 0x5d, 0x0f, 0x79, 0x93, 0x3e, 0x52, 0x8f, 0x85, 0xbe, 0x40, 0xb1, 0x2f, 0x52, 0x34, 0xfd,
+	0x93, 0xe4, 0x36, 0xf3, 0x7d, 0xbf, 0x0f, 0xbe, 0x19, 0x80, 0xfc, 0x51, 0xe8, 0xa0, 0x6e, 0x2a,
+	0x5d, 0xa1, 0xf9, 0x2c, 0x8a, 0xd2, 0xfb, 0x20, 0x30, 0xe5, 0xea, 0xa5, 0x53, 0xad, 0xc6, 0x0b,
+	0x30, 0xf5, 0xae, 0x56, 0x8c, 0xb8, 0xd4, 0x5f, 0x2c, 0x31, 0x18, 0x80, 0xe0, 0xc7, 0x0c, 0xb2,
+	0x5d, 0xad, 0xf8, 0xe8, 0xe3, 0x0d, 0x58, 0xad, 0x2a, 0x65, 0xd6, 0x88, 0xb2, 0x15, 0xb9, 0x2e,
+	0xaa, 0x92, 0x51, 0x97, 0xf8, 0xb3, 0xe5, 0xf9, 0x3e, 0x92, 0x1e, 0x9b, 0xfc, 0x94, 0xc6, 0x6b,
+	0x80, 0xae, 0x96, 0x42, 0xab, 0x44, 0xa9, 0x86, 0x19, 0x63, 0xd6, 0xde, 0x67, 0x37, 0x7f, 0x3a,
+	0x3f, 0x60, 0xbc, 0x2b, 0x30, 0x87, 0x02, 0x78, 0x06, 0x76, 0x1a, 0xc5, 0xab, 0x6d, 0xc6, 0xc3,
+	0x38, 0x0d, 0xef, 0xb2, 0x87, 0x75, 0x6c, 0x4f, 0xd0, 0x82, 0xd9, 0x26, 0x59, 0x85, 0x59, 0xb4,
+	0x4d, 0xa2, 0x88, 0xdb, 0xc4, 0x5b, 0x83, 0x75, 0x52, 0x02, 0x11, 0x4c, 0x29, 0xb4, 0x18, 0x8f,
+	0x9b, 0xf3, 0x71, 0x46, 0x06, 0xd3, 0xbc, 0x51, 0x42, 0x2b, 0xc9, 0xa8, 0x4b, 0x7d, 0x83, 0xff,
+	0xae, 0xb8, 0x00, 0x5a, 0x48, 0x66, 0x8c, 0x2c, 0x2d, 0xa4, 0x77, 0x09, 0xf0, 0xdf, 0x0c, 0x1d,
+	0x80, 0xae, 0x55, 0xcd, 0xbd, 0x28, 0xe5, 0xd3, 0xf0, 0x2e, 0xe2, 0xcf, 0xf9, 0x81, 0x72, 0x6b,
+	0xbf, 0xf5, 0x0e, 0x79, 0xef, 0x1d, 0xf2, 0xd9, 0x3b, 0xe4, 0xf5, 0xcb, 0x99, 0x7c, 0x07, 0x00,
+	0x00, 0xff, 0xff, 0xfc, 0x1a, 0xe4, 0xfd, 0x79, 0x01, 0x00, 0x00,
 }
 
 func (m *Request) Marshal() (dAtA []byte, err error) {
@@ -303,9 +303,9 @@ func (m *Request) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x1a
 	}
-	if m.SendMessage != nil {
+	if m.SendTransaction != nil {
 		{
-			size, err := m.SendMessage.MarshalToSizedBuffer(dAtA[:i])
+			size, err := m.SendTransaction.MarshalToSizedBuffer(dAtA[:i])
 			if err != nil {
 				return 0, err
 			}
@@ -325,7 +325,7 @@ func (m *Request) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *SendMessage) Marshal() (dAtA []byte, err error) {
+func (m *SendTransaction) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -335,12 +335,12 @@ func (m *SendMessage) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *SendMessage) MarshalTo(dAtA []byte) (int, error) {
+func (m *SendTransaction) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *SendMessage) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *SendTransaction) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -431,8 +431,8 @@ func (m *Request) Size() (n int) {
 	if m.Type != nil {
 		n += 1 + sovChat(uint64(*m.Type))
 	}
-	if m.SendMessage != nil {
-		l = m.SendMessage.Size()
+	if m.SendTransaction != nil {
+		l = m.SendTransaction.Size()
 		n += 1 + l + sovChat(uint64(l))
 	}
 	if m.UpdatePeer != nil {
@@ -445,7 +445,7 @@ func (m *Request) Size() (n int) {
 	return n
 }
 
-func (m *SendMessage) Size() (n int) {
+func (m *SendTransaction) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -543,7 +543,7 @@ func (m *Request) Unmarshal(dAtA []byte) error {
 			hasFields[0] |= uint64(0x00000001)
 		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field SendMessage", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field SendTransaction", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -570,10 +570,10 @@ func (m *Request) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if m.SendMessage == nil {
-				m.SendMessage = &SendMessage{}
+			if m.SendTransaction == nil {
+				m.SendTransaction = &SendTransaction{}
 			}
-			if err := m.SendMessage.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			if err := m.SendTransaction.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -638,7 +638,7 @@ func (m *Request) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *SendMessage) Unmarshal(dAtA []byte) error {
+func (m *SendTransaction) Unmarshal(dAtA []byte) error {
 	var hasFields [1]uint64
 	l := len(dAtA)
 	iNdEx := 0
@@ -662,10 +662,10 @@ func (m *SendMessage) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: SendMessage: wiretype end group for non-group")
+			return fmt.Errorf("proto: SendTransaction: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: SendMessage: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: SendTransaction: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
