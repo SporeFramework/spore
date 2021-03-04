@@ -25,7 +25,6 @@ require (
 	github.com/sirupsen/logrus v1.2.0
 	github.com/stretchr/testify v1.6.1 // indirect
 	github.com/valyala/gorpc v0.0.0-20160519171614-908281bef774
-	github.com/yyh1102/go-wasm-metering v1.0.1 // indirect
 	gopkg.in/matryer/try.v1 v1.0.0-20150601225556-312d2599e12e // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
