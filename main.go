@@ -24,11 +24,18 @@ import (
 	"github.com/multiformats/go-multiaddr"
 	"github.com/sirupsen/logrus"
 
+	wasmtime "github.com/bytecodealliance/wasmtime-go"
 	metering "github.com/sporeframework/spore/metering"
 )
 
 func main() {
-	wasm, err := ioutil.ReadFile("./basic.wasm")
+	// Almost all operations in wasmtime require a contextual `store`
+	// argument to share, so create that first
+	store := wasmtime.NewStore(wasmtime.NewEngine())
+
+	//wasm, err := ioutil.ReadFile(path.Join("metering", "test", "in", "wasm", "basic.wasm"))
+	//wasm, err := ioutil.ReadFile(path.Join("metering", "test", "expected-out", "wasm", "basic.wasm"))
+	wasm, err := ioutil.ReadFile("./add.wasm")
 	if err != nil {
 		panic(err)
 	}
@@ -37,6 +44,39 @@ func main() {
 
 	meterWasm, gasCost, _ := metering.MeterWASM(wasm, opts)
 	fmt.Println(meterWasm, gasCost)
+
+	// Once we have our binary `wasm` we can compile that into a `*Module`
+	// which represents compiled JIT code.
+	module, err := wasmtime.NewModule(store.Engine, meterWasm)
+	check(err)
+
+	// Our `hello.wat` file imports one item, so we create that function
+	// here.
+	var gasTotal int64
+	item := wasmtime.WrapFunc(store, func(gas int64) {
+		fmt.Println("gas used: ", gas)
+		gasTotal += gas
+	})
+
+	// Next up we instantiate a module which is where we link in all our
+	// imports. We've got one import so we pass that in here.
+	instance, err := wasmtime.NewInstance(store, module, []*wasmtime.Extern{item.AsExtern()})
+	check(err)
+
+	// After we've instantiated we can lookup our `run` function and call
+	// it.
+	run := instance.GetExport("addTwoNumbers").Func()
+	result, err := run.Call(2, 3)
+	check(err)
+	fmt.Println(result) // 42!
+	fmt.Println("Total gas used: ", gasTotal)
+
+}
+
+func check(e error) {
+	if e != nil {
+		panic(e)
+	}
 }
 
 // DiscoveryInterval is how often we re-publish our mDNS records.

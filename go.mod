@@ -3,6 +3,7 @@ module github.com/sporeframework/spore
 go 1.14
 
 require (
+	github.com/bytecodealliance/wasmtime-go v0.23.0
 	github.com/gdamore/tcell v1.3.0 // indirect
 	github.com/golang/protobuf v1.4.2
 	github.com/kirsle/configdir v0.0.0-20170128060238-e45d2f54772f
@@ -23,8 +24,9 @@ require (
 	github.com/multiformats/go-multiaddr v0.3.1
 	github.com/rivo/tview v0.0.0-20200507165325-823f280c5426 // indirect
 	github.com/sirupsen/logrus v1.2.0
-	github.com/stretchr/testify v1.6.1 // indirect
+	github.com/stretchr/testify v1.7.0
 	github.com/valyala/gorpc v0.0.0-20160519171614-908281bef774
+	github.com/wasmerio/wasmer-go v1.0.3
 	gopkg.in/matryer/try.v1 v1.0.0-20150601225556-312d2599e12e // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )

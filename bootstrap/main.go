@@ -15,8 +15,6 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
-
-	metering "metering"
 )
 
 func main() {
