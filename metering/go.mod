@@ -1,4 +1,4 @@
-module github.com/yyh1102/go-wasm-metering
+module github.com/sporeframework/spore/metering
 
 go 1.12
 
