@@ -1,6 +1,6 @@
 package metering
 
-import "github.com/SporeFramework/spore/toolkit"
+import "github.com/sporeframework/spore/metering/toolkit"
 
 var defaultCostTable = toolkit.JSON{
 	"start": 0,

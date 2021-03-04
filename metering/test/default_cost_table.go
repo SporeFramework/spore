@@ -1,6 +1,6 @@
 package test
 
-import "github.com/yyh1102/go-wasm-metering/toolkit"
+import "github.com/sporeframework/spore/metering/toolkit"
 
 var DefaultCostTable = toolkit.JSON{
 	"start": 1,

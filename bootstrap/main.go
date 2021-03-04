@@ -20,18 +20,6 @@ import (
 )
 
 func main() {
-	wasm, err := ioutil.ReadFile("./basic.wasm")
-	if err != nil {
-		panic(err)
-	}
-
-	opts := &metering.Options{}
-
-	meterWasm, gasCost, _ := metering.MeterWASM(wasm, opts)
-	fmt.Println(meterWasm, gasCost)
-}
-
-func main2() {
 	help := flag.Bool("help", false, "Display Help")
 	listenHost := flag.String("host", "0.0.0.0", "The bootstrap node host listen address\n")
 	port := flag.Int("port", 4001, "The bootstrap node listen port")

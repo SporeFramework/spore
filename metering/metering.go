@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"strconv"
 
-	"github.com/SporeFramework/spore/toolkit"
+	"github.com/sporeframework/spore/metering/toolkit"
 )
 
 const (

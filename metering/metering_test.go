@@ -8,8 +8,8 @@ import (
 	"path"
 	"testing"
 
-	"github.com/SporeFramework/spore/toolkit"
-	"github.com/SporeFramework/spore/wasm/test"
+	"github.com/sporeframework/spore/metering/test"
+	"github.com/sporeframework/spore/metering/toolkit"
 	"github.com/stretchr/testify/assert"
 )
 
