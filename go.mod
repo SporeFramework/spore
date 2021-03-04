@@ -1,4 +1,4 @@
-module github.com/SporeFramework/spore
+module github.com/sporeframework/spore
 
 go 1.14
 
@@ -23,9 +23,9 @@ require (
 	github.com/multiformats/go-multiaddr v0.3.1
 	github.com/rivo/tview v0.0.0-20200507165325-823f280c5426 // indirect
 	github.com/sirupsen/logrus v1.2.0
-	github.com/stretchr/testify v1.6.1
+	github.com/stretchr/testify v1.6.1 // indirect
 	github.com/valyala/gorpc v0.0.0-20160519171614-908281bef774
-	github.com/yyh1102/go-wasm-metering v1.0.1
+	github.com/yyh1102/go-wasm-metering v1.0.1 // indirect
 	gopkg.in/matryer/try.v1 v1.0.0-20150601225556-312d2599e12e // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )

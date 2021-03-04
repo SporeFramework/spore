@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/signal"
 	"syscall"
@@ -22,7 +23,21 @@ import (
 	"github.com/libp2p/go-libp2p/p2p/discovery"
 	"github.com/multiformats/go-multiaddr"
 	"github.com/sirupsen/logrus"
+
+	metering "github.com/sporeframework/spore/metering"
 )
+
+func main() {
+	wasm, err := ioutil.ReadFile("./basic.wasm")
+	if err != nil {
+		panic(err)
+	}
+
+	opts := &metering.Options{}
+
+	meterWasm, gasCost, _ := metering.MeterWASM(wasm, opts)
+	fmt.Println(meterWasm, gasCost)
+}
 
 // DiscoveryInterval is how often we re-publish our mDNS records.
 const DiscoveryInterval = time.Hour
@@ -45,7 +60,7 @@ var bootstrappers arrayFlags
 
 var log = logrus.New()
 
-func main() {
+func main2() {
 	// parse some flags to set our nickname and the room to join
 	flag.Var(&bootstrappers, "connect", "Connect to target bootstrap node. This can be any chat node on the network.")
 	listenHost := flag.String("host", "0.0.0.0", "The bootstrap node host listen address")

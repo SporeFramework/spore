@@ -4,18 +4,34 @@ import (
 	"context"
 	"flag"
 	"fmt"
+
 	"github.com/libp2p/go-libp2p"
-	"github.com/libp2p/go-libp2p-crypto"
-	"github.com/libp2p/go-libp2p-kad-dht"
+	crypto "github.com/libp2p/go-libp2p-crypto"
+	dht "github.com/libp2p/go-libp2p-kad-dht"
 	"github.com/multiformats/go-multiaddr"
+
 	// "crypto/rand"
-	"os"
-	"io/ioutil"
 	"encoding/hex"
+	"io/ioutil"
+	"os"
 	"strings"
+
+	metering "metering"
 )
 
 func main() {
+	wasm, err := ioutil.ReadFile("./basic.wasm")
+	if err != nil {
+		panic(err)
+	}
+
+	opts := &metering.Options{}
+
+	meterWasm, gasCost, _ := metering.MeterWASM(wasm, opts)
+	fmt.Println(meterWasm, gasCost)
+}
+
+func main2() {
 	help := flag.Bool("help", false, "Display Help")
 	listenHost := flag.String("host", "0.0.0.0", "The bootstrap node host listen address\n")
 	port := flag.Int("port", 4001, "The bootstrap node listen port")
@@ -35,26 +51,26 @@ func main() {
 
 	// Creates a new ECDSA key pair for this host.
 	/*
-	prvKey, _, err := crypto.GenerateECDSAKeyPair(rand.Reader)
-	if err != nil {
-		panic(err)
-	}
+		prvKey, _, err := crypto.GenerateECDSAKeyPair(rand.Reader)
+		if err != nil {
+			panic(err)
+		}
 
-	privB, err := prvKey.Bytes()
-	if err != nil {
-		panic(err)
-	}
+		privB, err := prvKey.Bytes()
+		if err != nil {
+			panic(err)
+		}
 
-	fmt.Printf("private key: %x \n", string(privB))
+		fmt.Printf("private key: %x \n", string(privB))
 	*/
 
-    content, err := ioutil.ReadFile("key.txt")
-    if err != nil {
-        panic(err)
-    }
+	content, err := ioutil.ReadFile("key.txt")
+	if err != nil {
+		panic(err)
+	}
 
-    hexString := strings.TrimSuffix(string(content), "\n")
-    decoded, err := hex.DecodeString(hexString)
+	hexString := strings.TrimSuffix(string(content), "\n")
+	decoded, err := hex.DecodeString(hexString)
 	if err != nil {
 		panic(err)
 	}
