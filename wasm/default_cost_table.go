@@ -1,6 +1,6 @@
 package metering
 
-import "github.com/spore/wasm/toolkit"
+import "github.com/SporeFramework/spore/toolkit"
 
 var defaultCostTable = toolkit.JSON{
 	"start": 0,

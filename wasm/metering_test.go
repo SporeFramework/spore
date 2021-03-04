@@ -4,12 +4,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/spore/wasm/test"
-	"github.com/spore/wasm/toolkit"
-	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"path"
 	"testing"
+
+	"github.com/SporeFramework/spore/toolkit"
+	"github.com/SporeFramework/spore/wasm/test"
+	"github.com/stretchr/testify/assert"
 )
 
 func readCostTable(path string) (toolkit.JSON, error) {

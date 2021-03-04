@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/spore/wasm/metering"
+	metering "github.com/SporeFramework/spore/wasm"
 
 	//"github.com/yyh1102/go-wasm-metering/toolkit"
 	"io/ioutil"

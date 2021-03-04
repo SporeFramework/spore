@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"strconv"
 
-	"github.com/spore/wasm/toolkit"
+	"github.com/SporeFramework/spore/toolkit"
 )
 
 const (
