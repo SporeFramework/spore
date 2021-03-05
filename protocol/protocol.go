@@ -12,11 +12,10 @@ import (
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
 	grpc "google.golang.org/grpc"
 	"google.golang.org/protobuf/proto"
-
-	sp "github.com/sporeframework/spore"
 )
 
 var ps *pubsub.PubSub
+var pubsubTopic string
 
 /*
 func sendTransaction(ps *pubsub.PubSub, msg string) {
@@ -136,13 +135,14 @@ func (s *server) Send(ctx context.Context, in *SendTransaction) (*SendTransactio
 	if err != nil {
 		return nil, err
 	}
-	err = ps.Publish(sp.PubsubTopic, msgBytes)
+	err = ps.Publish(pubsubTopic, msgBytes)
 
 	return &SendTransactionReply{Message: "Hello " + string(in.GetId())}, nil
 }
 
-func StartRPCServer(pubsub *pubsub.PubSub, p *int) {
+func StartRPCServer(topic string, pubsub *pubsub.PubSub, p *int) {
 	ps = pubsub
+	pubsubTopic = topic
 	const (
 		port = ":12345"
 	)

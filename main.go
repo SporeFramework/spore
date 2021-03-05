@@ -22,7 +22,7 @@ import (
 	"github.com/libp2p/go-libp2p/p2p/discovery"
 	"github.com/multiformats/go-multiaddr"
 	"github.com/sirupsen/logrus"
-	protocol "github.com/sporeframework/spore/protocol"
+	"github.com/sporeframework/spore/protocol"
 )
 
 func main2() {
@@ -219,7 +219,7 @@ func main() {
 		fmt.Scanln() // wait for Enter Key
 	}
 
-	go protocol.StartRPCServer(ps, rpcPort)
+	go protocol.StartRPCServer(PubsubTopic, ps, rpcPort)
 
 	if *daemon {
 		// select {}
