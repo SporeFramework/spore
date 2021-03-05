@@ -1,25 +1,35 @@
 package main
 
 import (
-	log "github.com/sirupsen/logrus"
-	"github.com/valyala/gorpc"
+	"context"
+	"log"
+	"time"
+
+	pb "github.com/sporeframework/spore/protocol"
+	"google.golang.org/grpc"
+)
+
+const (
+	address = "localhost:12345"
 )
 
 func main() {
-	c := &gorpc.Client{
-		// TCP address of the server.
-		Addr: "127.0.0.1:9000",
-	}
-	c.Start()
-
-	payload := "abc123"
-	// All client methods issuing RPCs are thread-safe and goroutine-safe,
-	// i.e. it is safe to call them from multiple concurrently running goroutines.
-	resp, err := c.Call(payload)
+	// Set up a connection to the server.
+	conn, err := grpc.Dial(address, grpc.WithInsecure(), grpc.WithBlock())
 	if err != nil {
-		log.Fatalf("Error when sending request to server: %s", err)
+		log.Fatalf("did not connect: %v", err)
 	}
-	if resp.(string) != payload {
-		log.Fatalf("Unexpected response from the server: %+v", resp)
+	defer conn.Close()
+
+	c := pb.NewSporeClient(conn)
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	payload := []byte("test")
+	r, err := c.Send(ctx, &pb.SendTransaction{Data: payload})
+	if err != nil {
+		log.Fatalf("could not send: %v", err)
 	}
+	log.Printf("Reply: %s", r.GetMessage())
 }

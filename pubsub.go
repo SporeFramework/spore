@@ -5,15 +5,18 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/golang/protobuf/proto"
 	peer "github.com/libp2p/go-libp2p-core/peer"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
+
+	pb "github.com/sporeframework/spore/protocol"
 )
 
 var handles = map[string]string{}
 
-const pubsubTopic = "/libp2p/spore/chat/1.0.0"
+const PubsubTopic = "/libp2p/spore/chat/1.0.0"
 
-func pubsubTransactionHandler(id peer.ID, msg *SendTransaction) {
+func pubsubTransactionHandler(id peer.ID, msg *pb.SendTransaction) {
 	handle, ok := handles[id.String()]
 	if !ok {
 		handle = id.ShortString()
@@ -21,7 +24,7 @@ func pubsubTransactionHandler(id peer.ID, msg *SendTransaction) {
 	fmt.Printf("%s: %s\n", handle, msg.Data)
 }
 
-func pubsubUpdateHandler(id peer.ID, msg *UpdatePeer) {
+func pubsubUpdateHandler(id peer.ID, msg *pb.UpdatePeer) {
 	oldHandle, ok := handles[id.String()]
 	if !ok {
 		oldHandle = id.ShortString()
@@ -38,17 +41,17 @@ func pubsubHandler(ctx context.Context, sub *pubsub.Subscription) {
 			continue
 		}
 
-		req := &Request{}
-		err = req.Unmarshal(msg.Data)
+		req := &pb.Request{}
+		err = proto.Unmarshal(msg.Data, req)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			continue
 		}
 
-		switch *req.Type {
-		case Request_SEND_TRANSACTION:
+		switch req.Type {
+		case pb.Request_SEND_TRANSACTION:
 			pubsubTransactionHandler(msg.GetFrom(), req.SendTransaction)
-		case Request_UPDATE_PEER:
+		case pb.Request_UPDATE_PEER:
 			pubsubUpdateHandler(msg.GetFrom(), req.UpdatePeer)
 		}
 	}

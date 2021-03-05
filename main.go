@@ -4,7 +4,6 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/signal"
 	"syscall"
@@ -23,60 +22,12 @@ import (
 	"github.com/libp2p/go-libp2p/p2p/discovery"
 	"github.com/multiformats/go-multiaddr"
 	"github.com/sirupsen/logrus"
-
-	wasmtime "github.com/bytecodealliance/wasmtime-go"
-	metering "github.com/sporeframework/spore/metering"
+	protocol "github.com/sporeframework/spore/protocol"
 )
 
-func main() {
-	// Almost all operations in wasmtime require a contextual `store`
-	// argument to share, so create that first
-	store := wasmtime.NewStore(wasmtime.NewEngine())
-
-	//wasm, err := ioutil.ReadFile(path.Join("metering", "test", "in", "wasm", "basic.wasm"))
-	//wasm, err := ioutil.ReadFile(path.Join("metering", "test", "expected-out", "wasm", "basic.wasm"))
-	wasm, err := ioutil.ReadFile("./add.wasm")
-	if err != nil {
-		panic(err)
-	}
-
-	opts := &metering.Options{}
-
-	meterWasm, gasCost, _ := metering.MeterWASM(wasm, opts)
-	fmt.Println(meterWasm, gasCost)
-
-	// Once we have our binary `wasm` we can compile that into a `*Module`
-	// which represents compiled JIT code.
-	module, err := wasmtime.NewModule(store.Engine, meterWasm)
-	check(err)
-
-	// Our `hello.wat` file imports one item, so we create that function
-	// here.
-	var gasTotal int64
-	item := wasmtime.WrapFunc(store, func(gas int64) {
-		fmt.Println("gas used: ", gas)
-		gasTotal += gas
-	})
-
-	// Next up we instantiate a module which is where we link in all our
-	// imports. We've got one import so we pass that in here.
-	instance, err := wasmtime.NewInstance(store, module, []*wasmtime.Extern{item.AsExtern()})
-	check(err)
-
-	// After we've instantiated we can lookup our `run` function and call
-	// it.
-	run := instance.GetExport("addTwoNumbers").Func()
-	result, err := run.Call(2, 3)
-	check(err)
-	fmt.Println(result) // 42!
-	fmt.Println("Total gas used: ", gasTotal)
-
-}
-
-func check(e error) {
-	if e != nil {
-		panic(e)
-	}
+func main2() {
+	WasmTime()
+	// Gasm()
 }
 
 // DiscoveryInterval is how often we re-publish our mDNS records.
@@ -100,7 +51,7 @@ var bootstrappers arrayFlags
 
 var log = logrus.New()
 
-func main2() {
+func main() {
 	// parse some flags to set our nickname and the room to join
 	flag.Var(&bootstrappers, "connect", "Connect to target bootstrap node. This can be any chat node on the network.")
 	listenHost := flag.String("host", "0.0.0.0", "The bootstrap node host listen address")
@@ -238,7 +189,7 @@ func main2() {
 	if err != nil {
 		panic(err)
 	}
-	sub, err := ps.Subscribe(pubsubTopic)
+	sub, err := ps.Subscribe(PubsubTopic)
 	if err != nil {
 		panic(err)
 	}
@@ -268,7 +219,7 @@ func main2() {
 		fmt.Scanln() // wait for Enter Key
 	}
 
-	go startRPCServer(ps, rpcPort)
+	go protocol.StartRPCServer(ps, rpcPort)
 
 	if *daemon {
 		// select {}
