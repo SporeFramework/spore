@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"crypto/sha256"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"reflect"
@@ -26,7 +27,14 @@ func gasConsumed(gas int64) {
 }
 
 // CreateWasmContract creates a new contract
-func CreateWasmContract(wasm []byte) (*wasmtime.Instance, [32]byte, uint64) {
+func CreateWasmContract(wasm []byte) ([32]byte, uint64, error) {
+
+	sum := sha256.Sum256(wasm)
+	fmt.Printf("sha256: %x\n", sum)
+	if contracts[sum] != nil {
+		return sum, 0, errors.New("Contract already exists")
+	}
+
 	opts := &metering.Options{}
 	meterWasm, gasCost, _ := metering.MeterWASM(wasm, opts)
 	// Once we have our binary `wasm` we can compile that into a `*Module`
@@ -40,11 +48,8 @@ func CreateWasmContract(wasm []byte) (*wasmtime.Instance, [32]byte, uint64) {
 	instance, err := wasmtime.NewInstance(store, module, []*wasmtime.Extern{item.AsExtern()})
 	check(err)
 
-	sum := sha256.Sum256(wasm)
-	fmt.Printf("%x", sum)
-
 	contracts[sum] = instance
-	return instance, sum, gasCost
+	return sum, gasCost, nil
 }
 
 // Call calls a wasm contract function
@@ -53,6 +58,10 @@ func Call(contractID [32]byte, funcName string, args ...interface{}) (interface{
 	// reset the gas counter
 	gasTotal = 0
 	instance := contracts[contractID]
+
+	if instance == nil {
+		return nil, 0, errors.New("contract could not be found")
+	}
 
 	//meteringFunc := instance.GetExport("metering.usegas").Func()
 	//fmt.Print(meteringFunc)
@@ -76,7 +85,7 @@ func WasmTime() {
 		panic(err)
 	}
 
-	_, id, gasUsed := CreateWasmContract(wasm)
+	id, gasUsed, _ := CreateWasmContract(wasm)
 
 	fmt.Println(gasUsed, id)
 	// After we've instantiated we can lookup our `run` function and call

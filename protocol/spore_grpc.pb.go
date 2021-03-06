@@ -19,7 +19,8 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type SporeClient interface {
 	// Sends a greeting
-	Send(ctx context.Context, in *SendTransaction, opts ...grpc.CallOption) (*SendTransactionReply, error)
+	Send(ctx context.Context, in *Transaction, opts ...grpc.CallOption) (*TransactionResponse, error)
+	CreateContract(ctx context.Context, in *Transaction, opts ...grpc.CallOption) (*TransactionResponse, error)
 }
 
 type sporeClient struct {
@@ -30,9 +31,18 @@ func NewSporeClient(cc grpc.ClientConnInterface) SporeClient {
 	return &sporeClient{cc}
 }
 
-func (c *sporeClient) Send(ctx context.Context, in *SendTransaction, opts ...grpc.CallOption) (*SendTransactionReply, error) {
-	out := new(SendTransactionReply)
+func (c *sporeClient) Send(ctx context.Context, in *Transaction, opts ...grpc.CallOption) (*TransactionResponse, error) {
+	out := new(TransactionResponse)
 	err := c.cc.Invoke(ctx, "/main.Spore/Send", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *sporeClient) CreateContract(ctx context.Context, in *Transaction, opts ...grpc.CallOption) (*TransactionResponse, error) {
+	out := new(TransactionResponse)
+	err := c.cc.Invoke(ctx, "/main.Spore/CreateContract", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +54,8 @@ func (c *sporeClient) Send(ctx context.Context, in *SendTransaction, opts ...grp
 // for forward compatibility
 type SporeServer interface {
 	// Sends a greeting
-	Send(context.Context, *SendTransaction) (*SendTransactionReply, error)
+	Send(context.Context, *Transaction) (*TransactionResponse, error)
+	CreateContract(context.Context, *Transaction) (*TransactionResponse, error)
 	mustEmbedUnimplementedSporeServer()
 }
 
@@ -52,8 +63,11 @@ type SporeServer interface {
 type UnimplementedSporeServer struct {
 }
 
-func (UnimplementedSporeServer) Send(context.Context, *SendTransaction) (*SendTransactionReply, error) {
+func (UnimplementedSporeServer) Send(context.Context, *Transaction) (*TransactionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Send not implemented")
+}
+func (UnimplementedSporeServer) CreateContract(context.Context, *Transaction) (*TransactionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateContract not implemented")
 }
 func (UnimplementedSporeServer) mustEmbedUnimplementedSporeServer() {}
 
@@ -69,7 +83,7 @@ func RegisterSporeServer(s grpc.ServiceRegistrar, srv SporeServer) {
 }
 
 func _Spore_Send_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SendTransaction)
+	in := new(Transaction)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -81,7 +95,25 @@ func _Spore_Send_Handler(srv interface{}, ctx context.Context, dec func(interfac
 		FullMethod: "/main.Spore/Send",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SporeServer).Send(ctx, req.(*SendTransaction))
+		return srv.(SporeServer).Send(ctx, req.(*Transaction))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Spore_CreateContract_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Transaction)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SporeServer).CreateContract(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/main.Spore/CreateContract",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SporeServer).CreateContract(ctx, req.(*Transaction))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -96,6 +128,10 @@ var Spore_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Send",
 			Handler:    _Spore_Send_Handler,
+		},
+		{
+			MethodName: "CreateContract",
+			Handler:    _Spore_CreateContract_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

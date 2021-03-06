@@ -3,6 +3,8 @@ package protocol
 import (
 	"context"
 	"crypto/rand"
+	"crypto/sha256"
+	hex "encoding/hex"
 	"fmt"
 	"log"
 	"net"
@@ -106,10 +108,7 @@ type server struct {
 	UnimplementedSporeServer
 }
 
-// Send implements Spore.Send
-func (s *server) Send(ctx context.Context, in *SendTransaction) (*SendTransactionReply, error) {
-	log.Printf("Received: %v", in.GetData())
-
+func setMetadata(in *Transaction) error {
 	msgID := make([]byte, 10)
 	_, err := rand.Read(msgID)
 	defer func() {
@@ -118,26 +117,47 @@ func (s *server) Send(ctx context.Context, in *SendTransaction) (*SendTransactio
 		}
 	}()
 	if err != nil {
-		return nil, err
-	}
-	now := time.Now().Unix()
-	req := &Request{
-		Type: Request_SEND_TRANSACTION,
-		SendTransaction: &SendTransaction{
-			Id:      msgID,
-			Data:    in.Data,
-			Created: now,
-		},
+		return err
 	}
 
+	now := time.Now().Unix()
+	in.Id = msgID
+	in.Created = now
+	return nil
+}
+
+func (s *server) CreateContract(ctx context.Context, in *Transaction) (*TransactionResponse, error) {
+	log.Printf("Received: %v", hex.EncodeToString(in.GetData()))
+	setMetadata(in)
+	req := &Request{
+		Type:        Request_CREATE_CONTRACT,
+		Transaction: in,
+	}
 	msgBytes, err := proto.Marshal(req)
-	//msgBytes, err := req.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	err = ps.Publish(pubsubTopic, msgBytes)
+	dataHash := sha256.Sum256(in.Data)
+	return &TransactionResponse{TransactionId: dataHash[:]}, nil
+}
+
+// Send implements Spore.Send
+func (s *server) Send(ctx context.Context, in *Transaction) (*TransactionResponse, error) {
+	log.Printf("Received: %v", in.GetData())
+	setMetadata(in)
+	req := &Request{
+		Type:        Request_SEND_TRANSACTION,
+		Transaction: in,
+	}
+	msgBytes, err := proto.Marshal(req)
 	if err != nil {
 		return nil, err
 	}
 	err = ps.Publish(pubsubTopic, msgBytes)
 
-	return &SendTransactionReply{Message: "Hello " + string(in.GetId())}, nil
+	dataHash := sha256.Sum256(in.Data)
+	return &TransactionResponse{TransactionId: dataHash[:]}, nil
 }
 
 func StartRPCServer(topic string, pubsub *pubsub.PubSub, p *int) {

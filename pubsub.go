@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/hex"
 	"fmt"
 	"os"
 
@@ -16,12 +17,33 @@ var handles = map[string]string{}
 
 const PubsubTopic = "/libp2p/spore/chat/1.0.0"
 
-func pubsubTransactionHandler(id peer.ID, msg *pb.SendTransaction) {
-	handle, ok := handles[id.String()]
-	if !ok {
-		handle = id.ShortString()
+func pubsubCreateContractHandler(id peer.ID, txn *pb.Transaction) {
+	contractID, gas, err := CreateWasmContract(txn.Data)
+	if err != nil {
+		fmt.Printf("An error has occured: %s\n", err.Error())
 	}
-	fmt.Printf("%s: %s\n", handle, msg.Data)
+	fmt.Printf("Contract created, ID: %s, Gas: %s\n", hex.EncodeToString(contractID[:]), gas)
+}
+
+func pubsubTransactionHandler(id peer.ID, txn *pb.Transaction) {
+
+	var contractID [32]byte
+	copy(contractID[:], txn.To[:32])
+
+	fmt.Printf("Calling Contract ID: %s\n", hex.EncodeToString(contractID[:]))
+
+	result, gas, err := Call(contractID, string(txn.Data))
+	if err != nil {
+		fmt.Printf("An error has occured: %s\n", err.Error())
+	}
+	fmt.Printf("result: %s, gas: %s\n", result, gas)
+	/*
+		handle, ok := handles[id.String()]
+		if !ok {
+			handle = id.ShortString()
+		}
+		fmt.Printf("%s: %s\n", handle, msg.Data)
+	*/
 }
 
 func pubsubUpdateHandler(id peer.ID, msg *pb.UpdatePeer) {
@@ -50,7 +72,9 @@ func pubsubHandler(ctx context.Context, sub *pubsub.Subscription) {
 
 		switch req.Type {
 		case pb.Request_SEND_TRANSACTION:
-			pubsubTransactionHandler(msg.GetFrom(), req.SendTransaction)
+			pubsubTransactionHandler(msg.GetFrom(), req.Transaction)
+		case pb.Request_CREATE_CONTRACT:
+			pubsubCreateContractHandler(msg.GetFrom(), req.Transaction)
 		case pb.Request_UPDATE_PEER:
 			pubsubUpdateHandler(msg.GetFrom(), req.UpdatePeer)
 		}
