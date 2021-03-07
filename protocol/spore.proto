@@ -4,10 +4,12 @@ option go_package = "github.com/sporeframework/spore/protocol";
 
 package main;
 
-// The greeter service definition.
+// The entry service definition
 service Spore {
-  // Sends a greeting
+  // Sends a Transaction
   rpc Send (Transaction) returns (TransactionResponse) {}
+
+  // Sends a Contract
   rpc CreateContract (Transaction) returns (TransactionResponse) {}
 }
 
@@ -15,12 +17,10 @@ message Request {
   enum Type {
     SEND_TRANSACTION = 0;
     CREATE_CONTRACT = 1;
-    UPDATE_PEER = 2;
   }
 
   Type type = 1;
   Transaction transaction = 2;
-  UpdatePeer updatePeer = 3;
 }
 
 message Transaction {
@@ -33,13 +33,10 @@ message Transaction {
   int64 gasPrice = 7;
   int32 nonce = 8;
   bool contract = 9;
+  bytes signature = 10;
 }
 
 // The response message containing the greetings
 message TransactionResponse {
   bytes transactionId = 1;
-}
-
-message UpdatePeer {
-  bytes userHandle = 1;
 }

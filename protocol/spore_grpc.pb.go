@@ -18,8 +18,9 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type SporeClient interface {
-	// Sends a greeting
+	// Sends a Transaction
 	Send(ctx context.Context, in *Transaction, opts ...grpc.CallOption) (*TransactionResponse, error)
+	// Sends a Contract
 	CreateContract(ctx context.Context, in *Transaction, opts ...grpc.CallOption) (*TransactionResponse, error)
 }
 
@@ -53,8 +54,9 @@ func (c *sporeClient) CreateContract(ctx context.Context, in *Transaction, opts 
 // All implementations must embed UnimplementedSporeServer
 // for forward compatibility
 type SporeServer interface {
-	// Sends a greeting
+	// Sends a Transaction
 	Send(context.Context, *Transaction) (*TransactionResponse, error)
+	// Sends a Contract
 	CreateContract(context.Context, *Transaction) (*TransactionResponse, error)
 	mustEmbedUnimplementedSporeServer()
 }

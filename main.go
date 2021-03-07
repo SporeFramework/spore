@@ -22,6 +22,7 @@ import (
 	"github.com/libp2p/go-libp2p/p2p/discovery"
 	"github.com/multiformats/go-multiaddr"
 	"github.com/sirupsen/logrus"
+	"github.com/sporeframework/spore/dag"
 	"github.com/sporeframework/spore/protocol"
 )
 
@@ -65,6 +66,9 @@ func main() {
 	conf := ConfigSetup()
 
 	ctx := context.Background()
+
+	// Intialize the chain
+	dag.InitializeChain()
 
 	var err error
 	// DHT Peer routing

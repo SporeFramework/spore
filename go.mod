@@ -4,8 +4,8 @@ go 1.14
 
 require (
 	github.com/bytecodealliance/wasmtime-go v0.23.0
-	github.com/golang/groupcache v0.0.0-20191027212112-611e8accdfc9 // indirect
-	github.com/golang/protobuf v1.4.2
+	github.com/ethereum/go-ethereum v1.10.0
+	github.com/golang/protobuf v1.4.3
 	github.com/kirsle/configdir v0.0.0-20170128060238-e45d2f54772f
 	github.com/libp2p/go-libp2p v0.13.0
 	github.com/libp2p/go-libp2p-connmgr v0.2.4
@@ -21,8 +21,7 @@ require (
 	github.com/sirupsen/logrus v1.2.0
 	github.com/stretchr/testify v1.7.0
 	github.com/valyala/gorpc v0.0.0-20160519171614-908281bef774
-	golang.org/x/crypto v0.0.0-20200820211705-5c72a883971a // indirect
-	golang.org/x/net v0.0.0-20200707034311-ab3426394381 // indirect
+	golang.org/x/crypto v0.0.0-20200820211705-5c72a883971a
 	google.golang.org/grpc v1.36.0
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.1.0 // indirect
 	google.golang.org/protobuf v1.25.0
