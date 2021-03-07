@@ -5,53 +5,57 @@ import (
 	"encoding/hex"
 	"fmt"
 	"os"
-	"sync"
 
 	"github.com/golang/protobuf/proto"
 	peer "github.com/libp2p/go-libp2p-core/peer"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
 
+	log "github.com/sirupsen/logrus"
 	dag "github.com/sporeframework/spore/dag"
 	pb "github.com/sporeframework/spore/protocol"
 )
 
 const PubsubTopic = "/spore/1.0.0"
 
-var mu sync.Mutex
+var g *dag.GreedyGraphMem
 
-func AddBlock(Name string) *dag.Block {
+func InitializeChain() {
+	var k = 1000
+	graph, err := dag.NewGreedyGraphMem(k)
+	if err != nil {
+		log.Error("failed to create new GreedyGraphMem: %s", err)
+	}
+	g = graph
+}
 
-	mu.Lock()
-	defer mu.Unlock()
-	// block := dag.InsertBlock(strconv.Itoa(rand.Int()))
-	block := dag.InsertBlock(Name)
+func AddBlock(Name string) {
 
+	ok, err := g.AddNode(Name)
+	if err != nil {
+		log.Error("failed to add node %s: %s", Name, err)
+	}
+
+	if !ok {
+		log.Error("node %s not added to graph", Name)
+	}
+
+	// debug
 	/*
-		block := dag.Block{Name, -1, -1, make(map[string]*dag.Block), make(map[string]*dag.Block), make(map[string]bool)}
-		for _, ref := range keys {
-			block.Prev[ref] = chain[ref]
-			chain[ref].Next[Name] = &block
+		nodeSize := len(g.Nodes())
+		fmt.Println("Node count: ", nodeSize)
+
+		if nodeSize%100 == 0 {
+			fmt.Println("Ordering started...")
+
+			ordered, err := g.Order()
+			if err != nil {
+				fmt.Errorf("failed to order nodes after adding node %s: %s", Name, err)
+			}
+
+			fmt.Println("Ordering completed: ", ordered[len(ordered)-5:])
+			fmt.Println("Ordering completed.")
 		}
-		mu.Lock()
-		block.SizeOfPastSet = dag.SizeOfPastSet(&block)
-		mu.Unlock()
-		chain[Name] = &block
 	*/
-
-	fmt.Println("Added Block: ", block)
-
-	// print out the entire chain for debugging purposes
-	//debugChain()
-
-	//block := dag.Block{Name, -1, -1, make(map[string]*dag.Block), make(map[string]*dag.Block), make(map[string]bool)}
-	//chain[Name] = &block
-
-	//tips = dag.FindTips(chain)
-	//fmt.Println("tips: ", tips)
-	//tipsName := dag.LTPQ(chain, true) // LTPQ is not relevant here, I just use it to get Tips name.
-	//ChainAddBlock("Virtual", []string{Name})
-
-	return block
 }
 
 func pubsubCreateContractHandler(id peer.ID, txn *pb.Transaction) {

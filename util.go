@@ -14,6 +14,8 @@ import (
 	"github.com/libp2p/go-libp2p-core/peer"
 	crypto "github.com/libp2p/go-libp2p-crypto"
 	"github.com/multiformats/go-multiaddr"
+
+	log "github.com/sirupsen/logrus"
 )
 
 const defaultConfig = `{
@@ -62,13 +64,17 @@ func ConfigSetup() *Configuration {
 	}
 
 	// set up logging
-	logfile := configdir.LocalConfig("spore", "spore.log")
-	file, erro := os.OpenFile(logfile, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
-	if erro == nil {
-		log.Out = file
-	} else {
-		log.Info("Failed to log to file, using default stderr")
-	}
+	/*
+		logfile := configdir.LocalConfig("spore", "spore.log")
+		file, erro := os.OpenFile(logfile, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+		if erro == nil {
+			log.SetOutput(file)
+		} else {
+			log.Info("Failed to log to file, using default stderr")
+		}
+	*/
+
+	log.SetOutput(os.Stdout)
 
 	fmt.Println(configPath)
 	// keyfile

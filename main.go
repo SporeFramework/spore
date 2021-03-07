@@ -21,9 +21,9 @@ import (
 	libp2ptls "github.com/libp2p/go-libp2p-tls"
 	"github.com/libp2p/go-libp2p/p2p/discovery"
 	"github.com/multiformats/go-multiaddr"
-	"github.com/sirupsen/logrus"
-	"github.com/sporeframework/spore/dag"
 	"github.com/sporeframework/spore/protocol"
+
+	log "github.com/sirupsen/logrus"
 )
 
 func main2() {
@@ -50,9 +50,15 @@ func (i *arrayFlags) Set(value string) error {
 
 var bootstrappers arrayFlags
 
-var log = logrus.New()
-
 func main() {
+
+	// Output to stdout instead of the default stderr
+	// Can be any io.Writer, see below for File example
+	log.SetOutput(os.Stdout)
+
+	// Only log the warning severity or above.
+	log.SetLevel(log.WarnLevel)
+
 	// parse some flags to set our nickname and the room to join
 	flag.Var(&bootstrappers, "connect", "Connect to target bootstrap node. This can be any chat node on the network.")
 	listenHost := flag.String("host", "0.0.0.0", "The bootstrap node host listen address")
@@ -68,7 +74,7 @@ func main() {
 	ctx := context.Background()
 
 	// Intialize the chain
-	dag.InitializeChain()
+	InitializeChain()
 
 	var err error
 	// DHT Peer routing

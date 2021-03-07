@@ -18,7 +18,7 @@ require (
 	github.com/mathetake/gasm v0.0.0-20200928142744-80e74517647c
 	github.com/multiformats/go-multiaddr v0.3.1
 	github.com/onsi/ginkgo v1.14.0 // indirect
-	github.com/sirupsen/logrus v1.2.0
+	github.com/sirupsen/logrus v1.8.0
 	github.com/stretchr/testify v1.7.0
 	github.com/valyala/gorpc v0.0.0-20160519171614-908281bef774
 	golang.org/x/crypto v0.0.0-20200820211705-5c72a883971a

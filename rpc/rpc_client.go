@@ -68,7 +68,7 @@ func main() {
 
 	// contractID, _ := hex.DecodeString("f5b012bbab7f165bc5eec4302f0952c1f3f8b601d4907cb8c5ae781a71821abb")
 
-	for i := 0; i < 6000; i++ {
+	for i := 0; i < 300; i++ {
 		rand.Int31()
 		createTransaction(c, ctx, contractID[:], address, privateKey)
 		/*
