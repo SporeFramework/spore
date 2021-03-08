@@ -22,6 +22,8 @@ type SporeClient interface {
 	Send(ctx context.Context, in *Transaction, opts ...grpc.CallOption) (*TransactionResponse, error)
 	// Sends a Contract
 	CreateContract(ctx context.Context, in *Transaction, opts ...grpc.CallOption) (*TransactionResponse, error)
+	// Get transaction by transaction id
+	GetTransaction(ctx context.Context, in *TransactionId, opts ...grpc.CallOption) (*Transaction, error)
 }
 
 type sporeClient struct {
@@ -50,6 +52,15 @@ func (c *sporeClient) CreateContract(ctx context.Context, in *Transaction, opts 
 	return out, nil
 }
 
+func (c *sporeClient) GetTransaction(ctx context.Context, in *TransactionId, opts ...grpc.CallOption) (*Transaction, error) {
+	out := new(Transaction)
+	err := c.cc.Invoke(ctx, "/main.Spore/GetTransaction", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // SporeServer is the server API for Spore service.
 // All implementations must embed UnimplementedSporeServer
 // for forward compatibility
@@ -58,6 +69,8 @@ type SporeServer interface {
 	Send(context.Context, *Transaction) (*TransactionResponse, error)
 	// Sends a Contract
 	CreateContract(context.Context, *Transaction) (*TransactionResponse, error)
+	// Get transaction by transaction id
+	GetTransaction(context.Context, *TransactionId) (*Transaction, error)
 	mustEmbedUnimplementedSporeServer()
 }
 
@@ -70,6 +83,9 @@ func (UnimplementedSporeServer) Send(context.Context, *Transaction) (*Transactio
 }
 func (UnimplementedSporeServer) CreateContract(context.Context, *Transaction) (*TransactionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateContract not implemented")
+}
+func (UnimplementedSporeServer) GetTransaction(context.Context, *TransactionId) (*Transaction, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetTransaction not implemented")
 }
 func (UnimplementedSporeServer) mustEmbedUnimplementedSporeServer() {}
 
@@ -120,6 +136,24 @@ func _Spore_CreateContract_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Spore_GetTransaction_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TransactionId)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SporeServer).GetTransaction(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/main.Spore/GetTransaction",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SporeServer).GetTransaction(ctx, req.(*TransactionId))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Spore_ServiceDesc is the grpc.ServiceDesc for Spore service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -134,6 +168,10 @@ var Spore_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateContract",
 			Handler:    _Spore_CreateContract_Handler,
+		},
+		{
+			MethodName: "GetTransaction",
+			Handler:    _Spore_GetTransaction_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

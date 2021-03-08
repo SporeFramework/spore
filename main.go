@@ -21,13 +21,14 @@ import (
 	libp2ptls "github.com/libp2p/go-libp2p-tls"
 	"github.com/libp2p/go-libp2p/p2p/discovery"
 	"github.com/multiformats/go-multiaddr"
-	"github.com/sporeframework/spore/protocol"
+	"github.com/sporeframework/spore/contract"
+	protocol "github.com/sporeframework/spore/protocol"
 
 	log "github.com/sirupsen/logrus"
 )
 
 func main2() {
-	WasmTime()
+	contract.WasmTime()
 	// Gasm()
 }
 
@@ -74,7 +75,7 @@ func main() {
 	ctx := context.Background()
 
 	// Intialize the chain
-	InitializeChain()
+	protocol.InitializeChain()
 
 	var err error
 	// DHT Peer routing
@@ -199,11 +200,11 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	sub, err := ps.Subscribe(PubsubTopic)
+	sub, err := ps.Subscribe(protocol.PubsubTopic)
 	if err != nil {
 		panic(err)
 	}
-	go pubsubHandler(ctx, sub)
+	go protocol.PubsubHandler(ctx, sub)
 
 	// setup local mDNS discovery
 	err = setupMdnsDiscovery(ctx, h)
@@ -229,7 +230,7 @@ func main() {
 		fmt.Scanln() // wait for Enter Key
 	}
 
-	go protocol.StartRPCServer(PubsubTopic, ps, rpcPort)
+	go protocol.StartRPCServer(protocol.PubsubTopic, ps, rpcPort)
 
 	if *daemon {
 		// select {}

@@ -11,6 +11,9 @@ service Spore {
 
   // Sends a Contract
   rpc CreateContract (Transaction) returns (TransactionResponse) {}
+
+  // Get transaction by transaction id
+  rpc GetTransaction(TransactionId) returns (Transaction) {}
 }
 
 message Request {
@@ -21,6 +24,7 @@ message Request {
 
   Type type = 1;
   Transaction transaction = 2;
+  TransactionId transactionId = 3;
 }
 
 message Transaction {
@@ -38,5 +42,9 @@ message Transaction {
 
 // The response message containing the greetings
 message TransactionResponse {
+  bytes transactionId = 1;
+}
+
+message TransactionId {
   bytes transactionId = 1;
 }

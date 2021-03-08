@@ -1,0 +1,9 @@
+version: "3.9"
+services:
+  spore-node-0:
+    image: spore-node
+    ports:
+      - "9000:9000"
+
+  spore-node:
+    image: spore-node

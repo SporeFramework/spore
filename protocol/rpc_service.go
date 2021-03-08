@@ -2,14 +2,12 @@ package protocol
 
 import (
 	"context"
-	"crypto/rand"
 	"crypto/sha256"
 	hex "encoding/hex"
 	"errors"
 	"fmt"
 	"log"
 	"net"
-	"os"
 	reflect "reflect"
 	"strconv"
 	"time"
@@ -64,16 +62,30 @@ func (s *server) CreateContract(ctx context.Context, in *Transaction) (*Transact
 	return &TransactionResponse{TransactionId: dataHash[:]}, nil
 }
 
+func (s *server) GetTransaction(ctx context.Context, in *TransactionId) (*Transaction, error) {
+	log.Printf("Received: %v", hex.EncodeToString(in.GetTransactionId()))
+
+	log.Println("Querying database with txn id: ", hex.EncodeToString(in.GetTransactionId()))
+	// we don't have to broadcast this call to the network, it is a local query
+	txnBytes, err := Database.Get([]byte(DatabaseNamespace), in.GetTransactionId())
+	if err != nil {
+		return nil, err
+	}
+
+	txn := &Transaction{}
+	err = proto.Unmarshal(txnBytes, txn)
+	if err != nil {
+		return nil, err
+	}
+	return txn, nil
+}
+
 // Send implements Spore.Send
 func (s *server) Send(ctx context.Context, in *Transaction) (*TransactionResponse, error) {
-	log.Printf("Received: %v", in.GetData())
+	log.Printf("Received: %v", hex.EncodeToString(in.GetData()))
 	if !checkSignature(in) {
 		return nil, errors.New("Could not validate signature")
 	}
-	// capture the state before setting metadata
-	txnBytes, _ := proto.Marshal(in)
-	dataHash := sha256.Sum256(txnBytes)
-
 	setMetadata(in)
 	req := &Request{
 		Type:        Request_SEND_TRANSACTION,
@@ -85,23 +97,17 @@ func (s *server) Send(ctx context.Context, in *Transaction) (*TransactionRespons
 	}
 	err = ps.Publish(pubsubTopic, msgBytes)
 
-	return &TransactionResponse{TransactionId: dataHash[:]}, nil
+	return &TransactionResponse{TransactionId: in.GetId()}, nil
 }
 
 func setMetadata(in *Transaction) error {
-	msgID := make([]byte, 10)
-	_, err := rand.Read(msgID)
-	defer func() {
-		if err != nil {
-			fmt.Fprintln(os.Stderr, err)
-		}
-	}()
-	if err != nil {
-		return err
-	}
+
+	// set the id to the transaction's hash
+	txnBytes, _ := proto.Marshal(in)
+	dataHash := sha256.Sum256(txnBytes)
+	in.Id = dataHash[:]
 
 	now := time.Now().Unix()
-	in.Id = msgID
 	in.Created = now
 	return nil
 }

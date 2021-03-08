@@ -4,6 +4,8 @@ go 1.14
 
 require (
 	github.com/bytecodealliance/wasmtime-go v0.23.0
+	github.com/dgraph-io/badger v1.6.2 // indirect
+	github.com/dgraph-io/badger/v3 v3.2011.1
 	github.com/ethereum/go-ethereum v1.10.0
 	github.com/golang/protobuf v1.4.3
 	github.com/kirsle/configdir v0.0.0-20170128060238-e45d2f54772f

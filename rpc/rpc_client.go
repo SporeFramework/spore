@@ -46,10 +46,11 @@ func generateRandomKey() (address []byte, privateKey *ecdsa.PrivateKey) {
 }
 
 func main() {
-
 	rpcPort := flag.Int("rpc", 9000, "The node's rpc port.")
+	flag.Parse()
 
 	addr := "localhost:" + strconv.Itoa(*rpcPort)
+	fmt.Println("connecting to ", addr)
 	// Set up a connection to the server.
 	conn, err := grpc.Dial(addr, grpc.WithInsecure(), grpc.WithBlock())
 	if err != nil {
@@ -68,16 +69,26 @@ func main() {
 
 	// contractID, _ := hex.DecodeString("f5b012bbab7f165bc5eec4302f0952c1f3f8b601d4907cb8c5ae781a71821abb")
 
-	for i := 0; i < 300; i++ {
-		rand.Int31()
-		createTransaction(c, ctx, contractID[:], address, privateKey)
-		/*
-			if i%1000 == 0 {
-				time.Sleep(2 * time.Second)
-			}
-		*/
-		fmt.Println(i)
+	createTransaction(c, ctx, contractID[:], address, privateKey)
+	id, _ := hex.DecodeString("4c2f990741c8957c7c60ab76655ccb12f35d7db05334c51a00f62cc820861265")
+	getTransaction(c, ctx, id)
+	/*
+		for i := 0; i < 500; i++ {
+			rand.Int31()
+			createTransaction(c, ctx, contractID[:], address, privateKey)
+			fmt.Println(i)
+		}
+	*/
+}
+
+func getTransaction(c pb.SporeClient, ctx context.Context, id []byte) *pb.Transaction {
+
+	r, err := c.GetTransaction(ctx, &pb.TransactionId{TransactionId: id})
+	if err != nil {
+		log.Fatalf("could not send: %v", err)
 	}
+	log.Printf("Transaction: %s", r)
+	return r
 
 }
 
@@ -115,7 +126,7 @@ func createContract(c pb.SporeClient, ctx context.Context, address []byte, prv *
 	return sum
 }
 
-func createTransaction(c pb.SporeClient, ctx context.Context, contractID []byte, address []byte, prv *ecdsa.PrivateKey) {
+func createTransaction(c pb.SporeClient, ctx context.Context, contractID []byte, address []byte, prv *ecdsa.PrivateKey) []byte {
 	payload := []byte("increment")
 
 	// create the transaction
@@ -143,4 +154,5 @@ func createTransaction(c pb.SporeClient, ctx context.Context, contractID []byte,
 		log.Fatalf("could not send: %v", err)
 	}
 	log.Printf("Reply: %s", string(hex.EncodeToString(r.GetTransactionId())))
+	return r.GetTransactionId()
 }
