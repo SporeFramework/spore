@@ -1,4 +1,4 @@
-# Spore
+# Spore 🍄
 Spore is a layer 2 framework for building independently decentralized apps
 
 # Test Network
