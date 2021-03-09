@@ -8,12 +8,12 @@ import (
 	"sync"
 
 	"github.com/kirsle/configdir"
-	peer "github.com/libp2p/go-libp2p-core/peer"
+	"github.com/libp2p/go-libp2p-core/peer"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/sporeframework/spore/contract"
-	dag "github.com/sporeframework/spore/dag"
+	"github.com/sporeframework/spore/dag"
 	"github.com/sporeframework/spore/db"
 	"google.golang.org/protobuf/proto"
 )
@@ -26,6 +26,8 @@ const (
 var (
 	g        *dag.GreedyGraphMem
 	Database db.DB
+	eng      *contract.ContractEngine
+	mu       sync.Mutex
 )
 
 func InitializeChain() {
@@ -47,29 +49,31 @@ func InitializeChain() {
 	if err != nil {
 		panic(err)
 	}
+	engine, err := contract.NewContractEngine()
+	if err != nil {
+		panic(err)
+	}
+	eng = engine
 }
-
-var mu sync.Mutex
 
 func AddBlock(txn *Transaction) {
 
-	Name := txn.Id
 	// this is only really required when using ordering
 	mu.Lock()
 	defer mu.Unlock()
 
 	tips, err := g.Tips()
 	if err != nil {
-		fmt.Errorf("❌ failed to get tips", Name, err)
+		fmt.Errorf("❌ failed to get tips: %s", err)
 	}
 
-	ok, err := g.Add(string(Name), tips)
+	ok, err := g.Add(string(txn.Id), tips)
 	if err != nil {
-		fmt.Errorf("❌ failed to add node %s: %s", Name, err)
+		fmt.Errorf("❌ failed to add node %s: %s", txn.Id, err)
 	}
 
 	if !ok {
-		fmt.Errorf("❌ node %s not added to graph", Name)
+		fmt.Errorf("❌ node %s not added to graph", txn.Id)
 	}
 
 	// write transaction to the database
@@ -79,7 +83,7 @@ func AddBlock(txn *Transaction) {
 	/*
 		getTxnBytes, err := database.Get([]byte(DatabaseNamespace), txn.Id)
 		if err != nil {
-			fmt.Errorf("❌ failed to get node %s from db: %s", Name, err)
+			fmt.Errorf("❌ failed to get node %s from db: %s", txn.Id, err)
 		}
 
 		txnUnmarsh := &pb.Transaction{}
@@ -93,7 +97,7 @@ func AddBlock(txn *Transaction) {
 
 			ordered, err := g.Order()
 			if err != nil {
-				fmt.Errorf("❌ failed to order nodes after adding node %s: %s", Name, err)
+				fmt.Errorf("❌ failed to order nodes after adding node %s: %s", txn.Id, err)
 			}
 
 			//fmt.Println("Ordering completed: ", ordered)
@@ -106,22 +110,12 @@ func AddBlock(txn *Transaction) {
 
 }
 
-func set(txn *Transaction) {
-	// add to the database
-	txnBytes, err := proto.Marshal(txn)
-	if err != nil {
-		fmt.Errorf("❌ failed to add node %s to db: %s", txn.Id, err)
-	}
-	go Database.Set([]byte(DatabaseNamespace), txn.Id, txnBytes)
-	fmt.Println("Inserted key into db: ", hex.EncodeToString(txn.Id))
-}
-
 func createContractHandler(id peer.ID, txn *Transaction) {
-	contractID, gas, err := contract.CreateWasmContract(txn.Data)
+	contractID, gas, err := eng.CreateWasmContract(txn.Data)
 	if err != nil {
 		fmt.Printf("An error has occured: %s\n", err.Error())
 	}
-	fmt.Printf("Contract created, ID: %s, Gas: %s\n", hex.EncodeToString(contractID[:]), gas)
+	fmt.Printf("Contract created, ID: %s, Gas: %d\n", hex.EncodeToString(contractID[:]), gas)
 
 	AddBlock(txn)
 }
@@ -132,12 +126,22 @@ func transactionHandler(id peer.ID, txn *Transaction) {
 
 	fmt.Printf("Calling Contract ID: %s\n", hex.EncodeToString(contractID[:]))
 
-	result, gas, err := contract.Call(contractID, string(txn.Data))
+	result, gas, err := eng.Call(contractID, string(txn.Data))
 	if err != nil {
 		fmt.Printf("An error has occured: %s\n", err.Error())
 	}
-	fmt.Printf("result: %s, gas: %s\n", result, gas)
+	fmt.Printf("result: %s, gas: %d\n", result, gas)
 	AddBlock(txn)
+}
+
+func set(txn *Transaction) {
+	// add to the database
+	txnBytes, err := proto.Marshal(txn)
+	if err != nil {
+		fmt.Errorf("❌ failed to add node %s to db: %s", txn.Id, err)
+	}
+	go Database.Set([]byte(DatabaseNamespace), txn.Id, txnBytes)
+	fmt.Println("Inserted key into db: ", hex.EncodeToString(txn.Id))
 }
 
 func PubsubHandler(ctx context.Context, sub *pubsub.Subscription) {

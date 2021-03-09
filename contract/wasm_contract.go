@@ -16,67 +16,78 @@ import (
 	"github.com/mathetake/gasm/wasm"
 )
 
-var contracts map[[32]byte]*wasmtime.Instance = make(map[[32]byte]*wasmtime.Instance)
-var store = wasmtime.NewStore(wasmtime.NewEngine())
+type ContractEngine struct {
+	contracts  map[[32]byte]*wasmtime.Instance
+	store      *wasmtime.Store
+	gasCounter int64
+}
 
-var gasTotal int64
+func NewContractEngine() (*ContractEngine, error) {
 
-func gasConsumed(gas int64) {
-	fmt.Println("gas used: ", gas)
-	gasTotal += gas
+	eng := &ContractEngine{
+		contracts:  make(map[[32]byte]*wasmtime.Instance),
+		store:      wasmtime.NewStore(wasmtime.NewEngine()),
+		gasCounter: 0,
+	}
+	return eng, nil
+}
+
+func (engine *ContractEngine) gasConsumed(gas int64) {
+	engine.gasCounter += gas
 }
 
 // CreateWasmContract creates a new contract
-func CreateWasmContract(wasm []byte) ([32]byte, uint64, error) {
+func (engine *ContractEngine) CreateWasmContract(wasm []byte) (sum [32]byte, gas uint64, err error) {
 
-	sum := sha256.Sum256(wasm)
-	fmt.Printf("sha256: %x\n", sum)
-	if contracts[sum] != nil {
+	sum = sha256.Sum256(wasm)
+	if engine.contracts[sum] != nil {
 		return sum, 0, errors.New("Contract already exists")
 	}
 
 	opts := &metering.Options{}
-	meterWasm, gasCost, _ := metering.MeterWASM(wasm, opts)
+	meterWasm, gas, _ := metering.MeterWASM(wasm, opts)
 	// Once we have our binary `wasm` we can compile that into a `*Module`
 	// which represents compiled JIT code.
-	module, err := wasmtime.NewModule(store.Engine, meterWasm)
+	module, err := wasmtime.NewModule(engine.store.Engine, meterWasm)
 	check(err)
 
-	item := wasmtime.WrapFunc(store, gasConsumed)
+	item := wasmtime.WrapFunc(engine.store, engine.gasConsumed)
 	// Instantiate a module which is where we link in all our
 	// imports. We've got one import so we pass that in here.
-	instance, err := wasmtime.NewInstance(store, module, []*wasmtime.Extern{item.AsExtern()})
+	instance, err := wasmtime.NewInstance(engine.store, module, []*wasmtime.Extern{item.AsExtern()})
 	check(err)
 
-	contracts[sum] = instance
-	return sum, gasCost, nil
+	engine.contracts[sum] = instance
+	return sum, gas, nil
 }
 
 // Call calls a wasm contract function
-func Call(contractID [32]byte, funcName string, args ...interface{}) (interface{}, int64, error) {
+func (engine *ContractEngine) Call(contractID [32]byte, funcName string, args ...interface{}) (interface{}, int64, error) {
 
 	// reset the gas counter
-	gasTotal = 0
-	instance := contracts[contractID]
+	defer func() {
+		engine.gasCounter = 0
+	}()
+
+	instance := engine.contracts[contractID]
 
 	if instance == nil {
 		return nil, 0, errors.New("contract could not be found")
 	}
-
-	//meteringFunc := instance.GetExport("metering.usegas").Func()
-	//fmt.Print(meteringFunc)
 	run := instance.GetExport(funcName).Func()
 	result, err := run.Call(args...)
-	exp := instance.Exports()
-	fmt.Println(exp)
 
-	//check(err)
 	// reset the gas counter
-	return result, gasTotal, err
+	return result, engine.gasCounter, err
 }
 
 // WasmTime test with wasmtime library
 func WasmTime() {
+	engine, err := NewContractEngine()
+	if err != nil {
+		panic(err)
+	}
+
 	//wasm, err := ioutil.ReadFile(path.Join("metering", "test", "in", "wasm", "basic.wasm"))
 	//wasm, err := ioutil.ReadFile(path.Join("metering", "test", "expected-out", "wasm", "basic.wasm"))
 	// wasm, err := ioutil.ReadFile("./add.wasm")
@@ -85,7 +96,7 @@ func WasmTime() {
 		panic(err)
 	}
 
-	id, gasUsed, _ := CreateWasmContract(wasm)
+	id, gasUsed, _ := engine.CreateWasmContract(wasm)
 
 	fmt.Println(gasUsed, id)
 	// After we've instantiated we can lookup our `run` function and call
@@ -93,7 +104,7 @@ func WasmTime() {
 	for i := 1; i <= 10; i++ {
 
 		//result, err := Call(id, "addTwoNumbers", 42, 32)
-		result, gas, err := Call(id, "increment")
+		result, gas, err := engine.Call(id, "increment")
 
 		//run := instance.GetExport("increment").Func()
 		//result, err := run.Call()

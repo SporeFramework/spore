@@ -20,8 +20,8 @@ import (
 	secio "github.com/libp2p/go-libp2p-secio"
 	libp2ptls "github.com/libp2p/go-libp2p-tls"
 	"github.com/libp2p/go-libp2p/p2p/discovery"
-	"github.com/multiformats/go-multiaddr"
-	"github.com/sporeframework/spore/contract"
+	multiaddr "github.com/multiformats/go-multiaddr"
+	contract "github.com/sporeframework/spore/contract"
 	protocol "github.com/sporeframework/spore/protocol"
 
 	log "github.com/sirupsen/logrus"
@@ -171,7 +171,7 @@ func main() {
 				// thread
 				go func(s string, peerId peer.ID) {
 					for i := 0; i < 100; i++ {
-						fmt.Printf("Loop %s\n", i)
+						fmt.Printf("Loop %d\n", i)
 						time.Sleep(2 * time.Second)
 						targetAddr, _ := multiaddr.NewMultiaddr(s)
 						targetInfo, _ := peer.AddrInfoFromP2pAddr(targetAddr)
